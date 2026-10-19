@@ -3,55 +3,135 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Zone Top Kills</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PvP Zone Leaderboard</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 
 <body>
-    <div id="container" style="display: none;">
-        <div class="header">
-            <!-- Logo Removed -->
-            <h1 class="wave-text">TOP KILLERS</h1>
+    <!-- Top Killers Leaderboard HUD -->
+    <div id="container" class="leaderboard-hud" style="display: none;">
+        <div class="hud-header">
+            <div class="hud-badge">⚔️ PVP ZONE</div>
+            <h1 class="hud-title">TOP KILLERS</h1>
+            <div class="hud-line"></div>
         </div>
-        <div class="leaderboard">
-            <div class="row rank-1">
-                <span class="rank">1.</span>
+
+        <div class="hud-leaderboard">
+            <div class="hud-row rank-1">
+                <div class="rank-col">
+                    <span class="rank-num">1</span>
+                    <span class="rank-icon">👑</span>
+                </div>
                 <span class="name" id="name-1">---</span>
                 <span class="kills" id="kills-1">0</span>
             </div>
-            <div class="row rank-2">
-                <span class="rank">2.</span>
+
+            <div class="hud-row rank-2">
+                <div class="rank-col">
+                    <span class="rank-num">2</span>
+                    <span class="rank-icon">🥈</span>
+                </div>
                 <span class="name" id="name-2">---</span>
                 <span class="kills" id="kills-2">0</span>
             </div>
-            <div class="row rank-3">
-                <span class="rank">3.</span>
+
+            <div class="hud-row rank-3">
+                <div class="rank-col">
+                    <span class="rank-num">3</span>
+                    <span class="rank-icon">🥉</span>
+                </div>
                 <span class="name" id="name-3">---</span>
                 <span class="kills" id="kills-3">0</span>
             </div>
         </div>
 
-        <!-- My Stats Seperator -->
-        <div class="my-stats-container"
-            style="margin-top: 2px; border-top: 1px solid rgba(0, 255, 255, 0.3); padding-top: 4px;">
-            <div class="row">
-                <span class="rank">★</span>
-                <span class="name">YOUR TOTAL KILLS</span>
+        <!-- Personal Stats Row -->
+        <div class="my-stats-container">
+            <div class="hud-row my-row">
+                <div class="rank-col">
+                    <span class="rank-icon my-icon">★</span>
+                </div>
+                <div class="my-info">
+                    <span class="my-label">YOU</span>
+                    <span class="name" id="my-name">---</span>
+                </div>
                 <span class="kills" id="my-kills">0</span>
             </div>
         </div>
     </div>
 
-    <!-- Separate Notification Container -->
+    <!-- Notification Banner -->
     <div id="notify-container" class="notify-box" style="display: none;">
+        <span class="notify-icon">⚔️</span>
         <span id="notify-message">Notification Message</span>
     </div>
 
-
-
-    <!-- Kill Feed Container -->
+    <!-- Kill Feed -->
     <div id="kill-feed-container"></div>
+
+    <!-- Admin Cord Manager Overlay (Opened via /pvp) -->
+    <div id="cordManagerOverlay" class="cm-overlay" style="display: none;">
+        <div id="cordManager" class="cm-modal">
+            <div class="cm-header">
+                <div class="cm-title-group">
+                    <span class="cm-admin-tag">ADMIN</span>
+                    <h1>⚔️ PvP Zone Manager</h1>
+                </div>
+                <button type="button" id="closeCordManager" class="cm-close" title="Close (ESC)">✕</button>
+            </div>
+
+            <div class="cm-body">
+                <!-- Add New Zone Form -->
+                <div class="cm-section">
+                    <div class="cm-section-title">
+                        <h2>Add New Zone</h2>
+                        <button type="button" id="btnFillCoords" class="cm-btn-auto">📍 Use Current Coords</button>
+                    </div>
+                    <form id="addCordForm">
+                        <div class="cm-form-group">
+                            <label for="cordName">Zone Name</label>
+                            <input type="text" id="cordName" placeholder="e.g. Saint Denis PvP" required autocomplete="off">
+                        </div>
+                        <div class="cm-form-grid">
+                            <div class="cm-form-group">
+                                <label for="cordX">X Coord</label>
+                                <input type="number" id="cordX" step="any" placeholder="0.0" required>
+                            </div>
+                            <div class="cm-form-group">
+                                <label for="cordY">Y Coord</label>
+                                <input type="number" id="cordY" step="any" placeholder="0.0" required>
+                            </div>
+                            <div class="cm-form-group">
+                                <label for="cordZ">Z Coord</label>
+                                <input type="number" id="cordZ" step="any" placeholder="0.0" required>
+                            </div>
+                            <div class="cm-form-group">
+                                <label for="cordRadius">Radius (m)</label>
+                                <input type="number" id="cordRadius" step="any" value="200.0" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="cm-btn-submit">Add Zone to Database</button>
+                    </form>
+                </div>
+
+                <!-- Existing Zones List -->
+                <div class="cm-section">
+                    <div class="cm-section-title">
+                        <h2>Configured Zones</h2>
+                        <span id="zoneCountBadge" class="cm-count-badge">0 Zones</span>
+                    </div>
+                    <div id="cordsList" class="cm-cords-list">
+                        <!-- Zones injected dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="cm-footer">
+                <span class="cm-hint">Press <kbd>ESC</kbd> or click ✕ to close</span>
+            </div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>

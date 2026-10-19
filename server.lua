@@ -24,10 +24,11 @@ end
 -- Load zone cords from database
 function LoadZoneCords()
     MySQL.query('SELECT * FROM pvp_cords', {}, function(result)
+        ZoneCords = {}
         if result and #result > 0 then
-            ZoneCords = {}
             for _, row in ipairs(result) do
                 table.insert(ZoneCords, {
+                    id = row.id,
                     name = row.name,
                     x = row.x,
                     y = row.y,
@@ -39,6 +40,7 @@ function LoadZoneCords()
         else
             print('[zone_top_kills] No zones found in pvp_cords table')
         end
+        TriggerClientEvent('zone_top_kills:receiveZoneData', -1, ZoneCords)
     end)
 end
 
