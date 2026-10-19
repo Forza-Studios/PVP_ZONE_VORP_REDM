@@ -4,8 +4,31 @@ TriggerEvent("getCore", function(core)
     VORPcore = core
 end)
 
--- SQL Table Name
-local TableName = 'zone_kills'
+-- SQL Table Names
+local TableName = 'pvp_leader'
+
+-- Create required tables on resource start
+CreateThread(function()
+    MySQL.query([[
+        CREATE TABLE IF NOT EXISTS pvp_leader (
+            identifier VARCHAR(64) PRIMARY KEY,
+            name VARCHAR(128),
+            kills INT DEFAULT 0,
+            streak INT DEFAULT 0
+        )
+    ]], {})
+
+    MySQL.query([[
+        CREATE TABLE IF NOT EXISTS pvp_cords (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(128),
+            x FLOAT,
+            y FLOAT,
+            z FLOAT,
+            radius FLOAT DEFAULT 200.0
+        )
+    ]], {})
+end)
 
 -- Helper: Get Top Killers
 function GetTopKillers(cb)
