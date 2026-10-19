@@ -216,3 +216,33 @@ RegisterCommand(Config.Command, function(source, args, rawCommand)
         TriggerClientEvent("vorp:TipRight", src, "You do not have permission.", 3000)
     end
 end)
+
+-- PVP COMMAND (Admin only) - Reload zone cords from database
+RegisterCommand('pvp', function(source, args, rawCommand)
+    local src = source
+
+    if src == 0 then
+        print('[zone_top_kills] /pvp must be run in-game.')
+        return
+    end
+
+    local User = VORPcore.getUser(src)
+    if not User then return end
+
+    local Group = User.getGroup
+    local Allowed = false
+
+    for _, g in ipairs(Config.AdminGroups) do
+        if Group == g then
+            Allowed = true
+            break
+        end
+    end
+
+    if Allowed then
+        LoadZoneCords()
+        TriggerClientEvent("vorp:TipRight", src, "Zone cords reloaded from database.", 3000)
+    else
+        TriggerClientEvent("vorp:TipRight", src, "You do not have permission.", 3000)
+    end
+end)
