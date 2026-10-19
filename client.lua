@@ -1,6 +1,24 @@
 local showingUI = false
 local inZone = false
 local hasDied = false
+local ZoneData = nil
+
+-- Request zone coordinates from server
+TriggerServerEvent('zone_top_kills:requestZoneData')
+
+-- Receive zone coordinates from server
+RegisterNetEvent('zone_top_kills:receiveZoneData', function(cords)
+    ZoneData = cords
+end)
+
+-- Helper: Get active zone from database only (no fallback)
+local function GetActiveZone()
+    if ZoneData and #ZoneData > 0 then
+        local z = ZoneData[1]
+        return { x = z.x, y = z.y, z = z.z, radius = z.radius or 200.0 }
+    end
+    return nil
+end
 
 -- Zone Detection Thread (Optimized)
 Citizen.CreateThread(function()
@@ -14,14 +32,15 @@ Citizen.CreateThread(function()
         local playerPed = PlayerPedId()
         local coords = GetEntityCoords(playerPed)
         
-        if Config and Config.Zone then
-            local dist = #(coords - vector3(Config.Zone.x, Config.Zone.y, Config.Zone.z))
+        local zone = GetActiveZone()
+        if zone then
+            local dist = #(coords - vector3(zone.x, zone.y, zone.z))
 
             -- If close (within radius + 50m), check more frequently
-            if dist < (Config.Zone.radius + 50.0) then
+            if dist < (zone.radius + 50.0) then
                 sleep = 1000 -- Near
                 
-                if dist < Config.Zone.radius then
+                if dist < zone.radius then
                     sleep = 500 -- Inside (Fast check)
                     
                     if not inZone then
@@ -141,15 +160,23 @@ end)
 
 -- Create Map Blip and Radius
 Citizen.CreateThread(function()
-    if Config and Config.Zone then
+    -- Wait for zone data from server (fallback to config after 5 seconds)
+    local waited = 0
+    while not ZoneData and waited < 5000 do
+        Citizen.Wait(100)
+        waited = waited + 100
+    end
+
+    local zone = GetActiveZone()
+    if zone then
         -- 1. Create the Radius Blip (Red Area on Map)
         -- 0x45f13b7e0a15c880 is AddBlipForRadius in RedM
-        local radiusBlip = Citizen.InvokeNative(0x45f13b7e0a15c880, -1282792512, Config.Zone.x, Config.Zone.y, Config.Zone.z, Config.Zone.radius)
+        local radiusBlip = Citizen.InvokeNative(0x45f13b7e0a15c880, -1282792512, zone.x, zone.y, zone.z, zone.radius)
         Citizen.InvokeNative(0x662D364ABF16DE2F, radiusBlip, joaat("BLIP_MODIFIER_MP_COLOR_2")) -- Force Red Color
         
         -- 2. Create the Icon Blip (So it has a name on the map)
         -- 0x554D9D53F696D002 is AddBlipForCoords in RedM
-        local iconBlip = Citizen.InvokeNative(0x554D9D53F696D002, 1664425300, Config.Zone.x, Config.Zone.y, Config.Zone.z)
+        local iconBlip = Citizen.InvokeNative(0x554D9D53F696D002, 1664425300, zone.x, zone.y, zone.z)
         SetBlipSprite(iconBlip, joaat("blip_ambient_bounty"), true) -- A skull/bounty icon
         Citizen.InvokeNative(0x662D364ABF16DE2F, iconBlip, joaat("BLIP_MODIFIER_MP_COLOR_2")) -- Force Red Color
         Citizen.InvokeNative(0x9CB1A1623062F402, iconBlip, "PvP Zone") -- Set Name

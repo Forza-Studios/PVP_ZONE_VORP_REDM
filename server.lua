@@ -7,6 +7,30 @@ end)
 -- SQL Table Names
 local TableName = 'pvp_leader'
 
+-- Zone coordinates loaded from database
+local ZoneCords = {}
+
+-- Load zone cords from database
+function LoadZoneCords()
+    MySQL.query('SELECT * FROM pvp_cords', {}, function(result)
+        if result and #result > 0 then
+            ZoneCords = {}
+            for _, row in ipairs(result) do
+                table.insert(ZoneCords, {
+                    name = row.name,
+                    x = row.x,
+                    y = row.y,
+                    z = row.z,
+                    radius = row.radius or 200.0
+                })
+            end
+            print('[zone_top_kills] Loaded ' .. #ZoneCords .. ' zone(s) from database')
+        else
+            print('[zone_top_kills] No zones found in pvp_cords table')
+        end
+    end)
+end
+
 -- Create required tables on resource start
 CreateThread(function()
     MySQL.query([[
@@ -27,7 +51,15 @@ CreateThread(function()
             z FLOAT,
             radius FLOAT DEFAULT 200.0
         )
-    ]], {})
+    ]], {}, function()
+        LoadZoneCords()
+    end)
+end)
+
+-- Send zone cords to requesting client
+RegisterNetEvent('zone_top_kills:requestZoneData', function()
+    local src = source
+    TriggerClientEvent('zone_top_kills:receiveZoneData', src, ZoneCords)
 end)
 
 -- Helper: Get Top Killers
