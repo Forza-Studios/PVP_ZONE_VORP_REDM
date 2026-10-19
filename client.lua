@@ -43,45 +43,56 @@ local function ClearAllZoneSmoke()
     activeSmokeZoneId = nil
 end
 
+-- Helper: Set active particle fx asset (RedM RDR3 native)
+local function SetPtfx(asset)
+    if UseParticleFxAsset then
+        UseParticleFxAsset(asset)
+    else
+        Citizen.InvokeNative(0xA10DB07D234C06D0, asset)
+    end
+end
+
 -- Helper: Spawn Zone Smoke Effect (Center beacon + 4 perimeter pillars)
 local function SpawnZoneSmoke(zone)
-    local ptfxDict = "core"
-    RequestNamedPtfxAsset(ptfxDict)
-    local tries = 0
-    while not HasNamedPtfxAssetLoaded(ptfxDict) and tries < 50 do
-        Citizen.Wait(10)
-        tries = tries + 1
-    end
-    if not HasNamedPtfxAssetLoaded(ptfxDict) then return end
-
-    local zX = zone.x
-    local zY = zone.y
-    local zZ = zone.z
-    local radius = zone.radius or 200.0
-
-    -- 1. Center Tall Rising Smoke Column
-    UseParticleFxAssetNextCall(ptfxDict)
-    local centerFx = StartParticleFxLoopedAtCoord("ent_amb_smoke_plume", zX, zY, zZ, 0.0, 0.0, 0.0, 2.2, false, false, false, false)
-    if centerFx and centerFx > 0 then
-        table.insert(spawnedSmokeFx, centerFx)
-    end
-
-    -- 2. Perimeter Smoke Pillars (4 Compass Points along radius)
-    local perimeterAngles = { 0, 90, 180, 270 }
-    for _, deg in ipairs(perimeterAngles) do
-        local rad = math.rad(deg)
-        local pX = zX + (radius * math.cos(rad))
-        local pY = zY + (radius * math.sin(rad))
-        local groundZ = zZ
-        local found, gZ = GetGroundZFor_3dCoord(pX, pY, zZ + 60.0, false)
-        if found then groundZ = gZ end
-
-        UseParticleFxAssetNextCall(ptfxDict)
-        local pFx = StartParticleFxLoopedAtCoord("ent_amb_smoke_plume", pX, pY, groundZ, 0.0, 0.0, 0.0, 1.5, false, false, false, false)
-        if pFx and pFx > 0 then
-            table.insert(spawnedSmokeFx, pFx)
+    pcall(function()
+        local ptfxDict = "core"
+        RequestNamedPtfxAsset(ptfxDict)
+        local tries = 0
+        while not HasNamedPtfxAssetLoaded(ptfxDict) and tries < 50 do
+            Citizen.Wait(10)
+            tries = tries + 1
         end
-    end
+        if not HasNamedPtfxAssetLoaded(ptfxDict) then return end
+
+        local zX = zone.x
+        local zY = zone.y
+        local zZ = zone.z
+        local radius = zone.radius or 200.0
+
+        -- 1. Center Tall Rising Smoke Column
+        SetPtfx(ptfxDict)
+        local centerFx = StartParticleFxLoopedAtCoord("ent_amb_smoke_plume", zX, zY, zZ, 0.0, 0.0, 0.0, 2.2, false, false, false, false)
+        if centerFx and centerFx > 0 then
+            table.insert(spawnedSmokeFx, centerFx)
+        end
+
+        -- 2. Perimeter Smoke Pillars (4 Compass Points along radius)
+        local perimeterAngles = { 0, 90, 180, 270 }
+        for _, deg in ipairs(perimeterAngles) do
+            local rad = math.rad(deg)
+            local pX = zX + (radius * math.cos(rad))
+            local pY = zY + (radius * math.sin(rad))
+            local groundZ = zZ
+            local found, gZ = GetGroundZFor_3dCoord(pX, pY, zZ + 60.0, false)
+            if found then groundZ = gZ end
+
+            SetPtfx(ptfxDict)
+            local pFx = StartParticleFxLoopedAtCoord("ent_amb_smoke_plume", pX, pY, groundZ, 0.0, 0.0, 0.0, 1.5, false, false, false, false)
+            if pFx and pFx > 0 then
+                table.insert(spawnedSmokeFx, pFx)
+            end
+        end
+    end)
 end
 
 -- Helper: Refresh Map Blips
@@ -102,19 +113,23 @@ local function RefreshZoneBlips()
         local colorKey = zone.color or 'red'
         local colorMod = ColorModifiers[colorKey] or ColorModifiers['red']
 
-        -- 1. Radius Blip (Colored Area on Map)
+        -- 1. Radius Blip (Colored Area Circle on Map & Minimap)
         local radiusBlip = Citizen.InvokeNative(0x45f13b7e0a15c880, -1282792512, zX, zY, zZ, radius)
-        if radiusBlip then
+        if radiusBlip and radiusBlip ~= 0 then
             Citizen.InvokeNative(0x662D364ABF16DE2F, radiusBlip, colorMod)
+            Citizen.InvokeNative(0x45FF974EEE1C8734, radiusBlip, 140) -- SetBlipAlpha: makes the circle visible on minimap
             table.insert(createdBlips, radiusBlip)
         end
 
-        -- 2. Icon Blip with Custom Name & Color
+        -- 2. Icon Blip with Custom Name & Color (Visible on Minimap)
         local iconBlip = Citizen.InvokeNative(0x554D9D53F696D002, 1664425300, zX, zY, zZ)
-        if iconBlip then
+        if iconBlip and iconBlip ~= 0 then
             SetBlipSprite(iconBlip, joaat("blip_ambient_bounty"), true) -- Skull/bounty icon
+            SetBlipScale(iconBlip, 1.0)
+            SetBlipAsShortRange(iconBlip, false) -- Visible on radar/minimap from a distance
             Citizen.InvokeNative(0x662D364ABF16DE2F, iconBlip, colorMod)
-            Citizen.InvokeNative(0x9CB1A1623062F402, iconBlip, name)
+            local varString = CreateVarString(10, 'LITERAL_STRING', name)
+            Citizen.InvokeNative(0x9CB1A1623062F402, iconBlip, varString)
             table.insert(createdBlips, iconBlip)
         end
     end
@@ -200,16 +215,18 @@ Citizen.CreateThread(function()
 
                 -- Dramatic Smoke Burst on Zone Entrance
                 Citizen.CreateThread(function()
-                    RequestNamedPtfxAsset("core")
-                    local tries = 0
-                    while not HasNamedPtfxAssetLoaded("core") and tries < 40 do
-                        Citizen.Wait(10)
-                        tries = tries + 1
-                    end
-                    if HasNamedPtfxAssetLoaded("core") then
-                        UseParticleFxAssetNextCall("core")
-                        StartParticleFxNonLoopedAtCoord("ent_amb_smoke_ground", coords.x, coords.y, coords.z - 0.4, 0.0, 0.0, 0.0, 2.5, false, false, false)
-                    end
+                    pcall(function()
+                        RequestNamedPtfxAsset("core")
+                        local tries = 0
+                        while not HasNamedPtfxAssetLoaded("core") and tries < 40 do
+                            Citizen.Wait(10)
+                            tries = tries + 1
+                        end
+                        if HasNamedPtfxAssetLoaded("core") then
+                            SetPtfx("core")
+                            StartParticleFxNonLoopedAtCoord("ent_amb_smoke_ground", coords.x, coords.y, coords.z - 0.4, 0.0, 0.0, 0.0, 2.5, false, false, false)
+                        end
+                    end)
                 end)
 
                 SendNUIMessage({ action = "show" })
