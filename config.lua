@@ -1,14 +1,5 @@
 Config = {}
 
--- ZONE SETTINGS
--- Change these coordinates to matches your PVP area.
-Config.Zone = {
-    x = -7.84,    -- X Coordinate
-    y = 505.32,   -- Y Coordinate
-    z = 157.21,   -- Z Coordinate
-    radius = 200.0 -- Zone Radius
-}
-
 -- PERMISSIONS
 -- List of groups allowed to use reset commands
 Config.AdminGroups = { 'superadmin', 'admin' }

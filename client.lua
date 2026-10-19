@@ -24,8 +24,6 @@ local function RefreshZoneBlips()
     local zones = {}
     if ZoneData and #ZoneData > 0 then
         zones = ZoneData
-    elseif Config.Zone then
-        zones = { Config.Zone }
     end
 
     for _, zone in ipairs(zones) do
@@ -66,8 +64,6 @@ local function CheckPlayerInAnyZone(coords)
     local zones = {}
     if ZoneData and #ZoneData > 0 then
         zones = ZoneData
-    elseif Config.Zone then
-        zones = { Config.Zone }
     end
 
     if #zones == 0 then
