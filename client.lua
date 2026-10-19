@@ -386,10 +386,12 @@ RegisterNuiCallback('cordManagerGetCurrentCoords', function(data, cb)
 end)
 
 -- NUI Callback: Close Cord Manager
+-- cb() MUST be called before SetNuiFocus(false, false); otherwise the NUI context
+-- is torn down before the browser receives the response, causing a "Failed to fetch" error.
 RegisterNuiCallback('cordManagerClose', function(data, cb)
-    SetNuiFocus(false, false)
-    SendNUIMessage({ action = 'closeCordManager' })
     cb('ok')
+    SendNUIMessage({ action = 'closeCordManager' })
+    SetNuiFocus(false, false)
 end)
 
 -- NUI Callback: Add a new zone cord
