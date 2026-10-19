@@ -44,8 +44,12 @@ local function ClearAllZoneSmoke()
 end
 
 -- Helper: Set active particle fx asset (RedM RDR3 native)
+-- RedM exposes SET_PARTICLE_FX_ASSET_NEXT_CALL as SetPtfxAssetNextCall.
+-- UseParticleFxAssetNextCall / UseParticleFxAsset are GTA V (FiveM) names and are nil in RedM.
 local function SetPtfx(asset)
-    if UseParticleFxAsset then
+    if SetPtfxAssetNextCall then
+        SetPtfxAssetNextCall(asset)
+    elseif UseParticleFxAsset then
         UseParticleFxAsset(asset)
     else
         Citizen.InvokeNative(0xA10DB07D234C06D0, asset)
@@ -71,7 +75,7 @@ local function SpawnZoneSmoke(zone)
 
         -- 1. Center Tall Rising Smoke Column
         SetPtfx(ptfxDict)
-        local centerFx = StartParticleFxLoopedAtCoord("ent_amb_smoke_plume", zX, zY, zZ, 0.0, 0.0, 0.0, 2.2, false, false, false, false)
+        local centerFx = StartParticleFxLoopedAtCoord("ent_amb_falling_smoke", zX, zY, zZ, 0.0, 0.0, 0.0, 2.2, false, false, false, false)
         if centerFx and centerFx > 0 then
             table.insert(spawnedSmokeFx, centerFx)
         end
@@ -87,7 +91,7 @@ local function SpawnZoneSmoke(zone)
             if found then groundZ = gZ end
 
             SetPtfx(ptfxDict)
-            local pFx = StartParticleFxLoopedAtCoord("ent_amb_smoke_plume", pX, pY, groundZ, 0.0, 0.0, 0.0, 1.5, false, false, false, false)
+            local pFx = StartParticleFxLoopedAtCoord("ent_amb_falling_smoke", pX, pY, groundZ, 0.0, 0.0, 0.0, 1.5, false, false, false, false)
             if pFx and pFx > 0 then
                 table.insert(spawnedSmokeFx, pFx)
             end
@@ -126,7 +130,8 @@ local function RefreshZoneBlips()
         if iconBlip and iconBlip ~= 0 then
             SetBlipSprite(iconBlip, joaat("blip_ambient_bounty"), true) -- Skull/bounty icon
             SetBlipScale(iconBlip, 1.0)
-            SetBlipAsShortRange(iconBlip, false) -- Visible on radar/minimap from a distance
+            -- RedM (RDR3) does not expose SetBlipAsShortRange (GTA V native, nil here).
+            -- Icon blips added via ADD_BLIP_FOR_COORD display on the minimap by default.
             Citizen.InvokeNative(0x662D364ABF16DE2F, iconBlip, colorMod)
             local varString = CreateVarString(10, 'LITERAL_STRING', name)
             Citizen.InvokeNative(0x9CB1A1623062F402, iconBlip, varString)
@@ -224,7 +229,7 @@ Citizen.CreateThread(function()
                         end
                         if HasNamedPtfxAssetLoaded("core") then
                             SetPtfx("core")
-                            StartParticleFxNonLoopedAtCoord("ent_amb_smoke_ground", coords.x, coords.y, coords.z - 0.4, 0.0, 0.0, 0.0, 2.5, false, false, false)
+                            StartParticleFxNonLoopedAtCoord("ent_amb_falling_smoke", coords.x, coords.y, coords.z - 0.4, 0.0, 0.0, 0.0, 2.5, false, false, false)
                         end
                     end)
                 end)
