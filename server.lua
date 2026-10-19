@@ -10,6 +10,17 @@ local TableName = 'pvp_leader'
 -- Zone coordinates loaded from database
 local ZoneCords = {}
 
+-- Helper: Check if player is admin
+local function IsAdmin(src)
+    local User = VORPcore.getUser(src)
+    if not User then return false end
+    local Group = User.getGroup
+    for _, g in ipairs(Config.AdminGroups) do
+        if Group == g then return true end
+    end
+    return false
+end
+
 -- Load zone cords from database
 function LoadZoneCords()
     MySQL.query('SELECT * FROM pvp_cords', {}, function(result)
@@ -56,10 +67,58 @@ CreateThread(function()
     end)
 end)
 
--- Send zone cords to requesting client
+-- Send zone cords to requesting client (for in-zone detection)
 RegisterNetEvent('zone_top_kills:requestZoneData', function()
     local src = source
     TriggerClientEvent('zone_top_kills:receiveZoneData', src, ZoneCords)
+end)
+
+-- Get all zone cords (for Cord Manager NUI)
+RegisterNetEvent('zone_top_kills:getZoneCords', function()
+    local src = source
+    if not IsAdmin(src) then
+        TriggerClientEvent("vorp:TipRight", src, "You do not have permission.", 3000)
+        return
+    end
+    MySQL.query('SELECT * FROM pvp_cords', {}, function(result)
+        TriggerClientEvent('zone_top_kills:receiveZoneCords', src, result or {})
+    end)
+end)
+
+-- Add a new zone cord to database
+RegisterNetEvent('zone_top_kills:addZoneCord', function(data)
+    local src = source
+    if not IsAdmin(src) then
+        TriggerClientEvent("vorp:TipRight", src, "You do not have permission.", 3000)
+        return
+    end
+    MySQL.query('INSERT INTO pvp_cords (name, x, y, z, radius) VALUES (?, ?, ?, ?, ?)',
+        {data.name, data.x, data.y, data.z, data.radius or 200.0},
+        function()
+            LoadZoneCords()
+            TriggerClientEvent("vorp:TipRight", src, "Zone cord added to database.", 3000)
+            -- Send updated list back
+            MySQL.query('SELECT * FROM pvp_cords', {}, function(result)
+                TriggerClientEvent('zone_top_kills:receiveZoneCords', src, result or {})
+            end)
+        end)
+end)
+
+-- Remove a zone cord from database
+RegisterNetEvent('zone_top_kills:removeZoneCord', function(data)
+    local src = source
+    if not IsAdmin(src) then
+        TriggerClientEvent("vorp:TipRight", src, "You do not have permission.", 3000)
+        return
+    end
+    MySQL.query('DELETE FROM pvp_cords WHERE id = ?', {data.id}, function()
+        LoadZoneCords()
+        TriggerClientEvent("vorp:TipRight", src, "Zone cord removed from database.", 3000)
+        -- Send updated list back
+        MySQL.query('SELECT * FROM pvp_cords', {}, function(result)
+            TriggerClientEvent('zone_top_kills:receiveZoneCords', src, result or {})
+        end)
+    end)
 end)
 
 -- Helper: Get Top Killers
@@ -197,27 +256,15 @@ RegisterCommand(Config.Command, function(source, args, rawCommand)
         return
     end
 
-    local User = VORPcore.getUser(src)
-    if not User then return end
-    
-    local Group = User.getGroup
-    local Allowed = false
-    
-    for _, g in ipairs(Config.AdminGroups) do
-        if Group == g then
-            Allowed = true
-            break
-        end
-    end
-    
-    if Allowed then
-        executeReset()
-    else
+    if not IsAdmin(src) then
         TriggerClientEvent("vorp:TipRight", src, "You do not have permission.", 3000)
+        return
     end
+    
+    executeReset()
 end)
 
--- PVP COMMAND (Admin only) - Reload zone cords from database
+-- PVP COMMAND (Admin only) - Open Cord Manager NUI
 RegisterCommand('pvp', function(source, args, rawCommand)
     local src = source
 
@@ -226,23 +273,15 @@ RegisterCommand('pvp', function(source, args, rawCommand)
         return
     end
 
-    local User = VORPcore.getUser(src)
-    if not User then return end
-
-    local Group = User.getGroup
-    local Allowed = false
-
-    for _, g in ipairs(Config.AdminGroups) do
-        if Group == g then
-            Allowed = true
-            break
-        end
-    end
-
-    if Allowed then
-        LoadZoneCords()
-        TriggerClientEvent("vorp:TipRight", src, "Zone cords reloaded from database.", 3000)
-    else
+    if not IsAdmin(src) then
         TriggerClientEvent("vorp:TipRight", src, "You do not have permission.", 3000)
+        return
     end
+
+    -- Fetch cords from DB and tell client to open NUI
+    MySQL.query('SELECT * FROM pvp_cords', {}, function(result)
+        local cords = result or {}
+        TriggerClientEvent('zone_top_kills:receiveZoneCords', src, cords)
+        TriggerClientEvent('zone_top_kills:openCordManager', src)
+    end)
 end)

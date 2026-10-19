@@ -158,6 +158,51 @@ RegisterNetEvent('zone_top_kills:announceKill', function(killerName, victimName,
     end
 end)
 
+-- Listen for Zone Cords from server (for Cord Manager NUI)
+RegisterNetEvent('zone_top_kills:receiveZoneCords', function(cords)
+    SendNUIMessage({
+        action = 'updateCords',
+        cords = cords
+    })
+end)
+
+-- Open Cord Manager NUI
+RegisterNetEvent('zone_top_kills:openCordManager', function()
+    SetNuiFocus(true, true)
+    SendNUIMessage({ action = 'openCordManager' })
+end)
+
+-- NUI Callback: Close Cord Manager
+RegisterNuiCallback('cordManagerClose', function(data, cb)
+    SetNuiFocus(false, false)
+    SendNUIMessage({ action = 'closeCordManager' })
+    cb('ok')
+end)
+
+-- NUI Callback: Add a new zone cord
+RegisterNuiCallback('cordManagerAdd', function(data, cb)
+    TriggerServerEvent('zone_top_kills:addZoneCord', {
+        name = data.name,
+        x = tonumber(data.x) or 0,
+        y = tonumber(data.y) or 0,
+        z = tonumber(data.z) or 0,
+        radius = tonumber(data.radius) or 200.0
+    })
+    cb('ok')
+end)
+
+-- NUI Callback: Remove a zone cord
+RegisterNuiCallback('cordManagerRemove', function(data, cb)
+    TriggerServerEvent('zone_top_kills:removeZoneCord', { id = data.id })
+    cb('ok')
+end)
+
+-- NUI Callback: Request fresh cords from server
+RegisterNuiCallback('cordManagerGetCords', function(data, cb)
+    TriggerServerEvent('zone_top_kills:getZoneCords')
+    cb('ok')
+end)
+
 -- Create Map Blip and Radius
 Citizen.CreateThread(function()
     -- Wait for zone data from server (fallback to config after 5 seconds)

@@ -13,6 +13,9 @@ files {
     'html/index.html',
     'html/style.css',
     'html/script.js',
+    'html/cordmanager.html',
+    'html/cordmanager.css',
+    'html/cordmanager.js',
     'html/*.gif',
     'html/*.png',
     'html/RDRCatalogueBold-Bold.woff'

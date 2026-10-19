@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>PvP Zone Cord Manager</title>
+    <link rel="stylesheet" href="cordmanager.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+
+<body>
+    <div id="cordManager" style="display: none;">
+        <div class="cm-header">
+            <h1>⚔️ PvP Zone Manager</h1>
+            <button id="closeCordManager" class="cm-close">✕</button>
+        </div>
+
+        <div class="cm-content">
+            <!-- Add Cord Form -->
+            <div class="cm-section">
+                <h2>Add Zone Cord</h2>
+                <form id="addCordForm">
+                    <div class="cm-form-group">
+                        <label>Zone Name</label>
+                        <input type="text" id="cordName" placeholder="e.g. Saint Denis PvP" required>
+                    </div>
+                    <div class="cm-form-row">
+                        <div class="cm-form-group">
+                            <label>X Coord</label>
+                            <input type="number" id="cordX" step="any" placeholder="X" required>
+                        </div>
+                        <div class="cm-form-group">
+                            <label>Y Coord</label>
+                            <input type="number" id="cordY" step="any" placeholder="Y" required>
+                        </div>
+                        <div class="cm-form-group">
+                            <label>Z Coord</label>
+                            <input type="number" id="cordZ" step="any" placeholder="Z" required>
+                        </div>
+                        <div class="cm-form-group">
+                            <label>Radius</label>
+                            <input type="number" id="cordRadius" step="any" value="200.0" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="cm-btn-add">Add Cord to DB</button>
+                </form>
+            </div>
+
+            <!-- Existing Cords List -->
+            <div class="cm-section">
+                <h2>Existing Zones</h2>
+                <div id="cordsList" class="cm-cords-list">
+                    <!-- Cords injected here by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="cordmanager.js"></script>
+</body>
+
+</html>

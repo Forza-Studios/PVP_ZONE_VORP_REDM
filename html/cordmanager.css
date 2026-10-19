@@ -1,0 +1,271 @@
+/* ========================================
+   PvP Zone Cord Manager Styles
+   ======================================== */
+
+html,
+body {
+    background: transparent !important;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-family: 'RDRCatalogueBold', serif;
+    user-select: none;
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#cordManager {
+    width: 520px;
+    max-width: 90vw;
+    max-height: 85vh;
+    background: linear-gradient(135deg, rgba(8, 20, 25, 0.97), rgba(5, 15, 20, 0.92));
+    border: 1px solid rgba(255, 0, 0, 0.25);
+    border-radius: 6px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    color: #ffe0e0;
+    animation: cmFadeIn 0.35s ease-out;
+}
+
+@keyframes cmFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Header */
+.cm-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(255, 0, 0, 0.2);
+    background: rgba(255, 0, 0, 0.05);
+}
+
+.cm-header h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #ffe0e0;
+    text-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+}
+
+.cm-close {
+    background: transparent;
+    border: 1px solid rgba(255, 0, 0, 0.3);
+    color: #ffe0e0;
+    font-family: 'RDRCatalogueBold', serif;
+    font-size: 1.6rem;
+    width: 34px;
+    height: 34px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cm-close:hover {
+    background: rgba(255, 0, 0, 0.2);
+    border-color: #ff0000;
+}
+
+/* Content */
+.cm-content {
+    padding: 20px;
+    overflow-y: auto;
+    max-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Sections */
+.cm-section {
+    background: rgba(10, 25, 30, 0.85);
+    border: 1px solid rgba(255, 0, 0, 0.12);
+    border-radius: 5px;
+    padding: 16px;
+}
+
+.cm-section h2 {
+    margin: 0 0 14px 0;
+    font-size: 1.25rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #ff0000;
+    text-shadow: 0 0 8px rgba(255, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 0, 0, 0.15);
+    padding-bottom: 8px;
+}
+
+/* Form */
+.cm-form-group {
+    margin-bottom: 12px;
+}
+
+.cm-form-group label {
+    display: block;
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+    color: #ffe0e0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cm-form-group input {
+    width: 100%;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 0, 0, 0.2);
+    border-radius: 4px;
+    color: #ffffff;
+    font-family: 'RDRCatalogueBold', serif;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.cm-form-group input:focus {
+    outline: none;
+    border-color: #ff0000;
+    box-shadow: 0 0 8px rgba(255, 0, 0, 0.2);
+}
+
+.cm-form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.cm-btn-add {
+    background: linear-gradient(135deg, #ff0000, #aa0000);
+    border: none;
+    color: #ffffff;
+    font-family: 'RDRCatalogueBold', serif;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 12px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    box-shadow: 0 4px 12px rgba(255, 0, 0, 0.3);
+}
+
+.cm-btn-add:hover {
+    background: linear-gradient(135deg, #ff3333, #cc0000);
+    box-shadow: 0 6px 16px rgba(255, 0, 0, 0.5);
+}
+
+.cm-btn-add:active {
+    transform: scale(0.98);
+}
+
+/* Cords List */
+.cm-cords-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.cm-cord-item {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 0, 0, 0.15);
+    border-left: 3px solid #ff0000;
+    border-radius: 4px;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.cm-cord-item.empty {
+    text-align: center;
+    color: #888;
+    font-style: italic;
+    border-style: dashed;
+}
+
+.cm-cord-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.cm-cord-name {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #ffe0e0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.cm-cord-coords {
+    font-family: monospace;
+    font-size: 0.85rem;
+    color: #00ffff;
+    background: rgba(0, 255, 255, 0.1);
+    padding: 4px 8px;
+    border-radius: 3px;
+    border: 1px solid rgba(0, 255, 255, 0.2);
+}
+
+.cm-cord-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.cm-btn-remove {
+    background: transparent;
+    border: 1px solid rgba(255, 0, 0, 0.4);
+    color: #ff6666;
+    font-family: 'RDRCatalogueBold', serif;
+    font-size: 0.85rem;
+    padding: 6px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cm-btn-remove:hover {
+    background: rgba(255, 0, 0, 0.15);
+    border-color: #ff0000;
+    color: #ff0000;
+}
+
+.cm-btn-remove:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Scrollbar */
+.cm-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.cm-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.cm-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 0, 0, 0.3);
+    border-radius: 3px;
+}
+
+.cm-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 0, 0, 0.6);
+}
