@@ -1,0 +1,19 @@
+/* Existing styles... appending new specific styles */
+
+.my-row {
+    border-left-color: #00ff00;
+    /* Green or Distinctive Color for 'Self' */
+    background: linear-gradient(90deg, rgba(8, 25, 20, 0.95), rgba(5, 15, 10, 0.9));
+    box-shadow: 0 4px 10px rgba(0, 255, 0, 0.1);
+}
+
+.my-row .rank {
+    color: #00ff00;
+    /* Green for 'YOU' */
+    width: 40px;
+    /* Slightly wider */
+}
+
+.my-row .kills {
+    color: #00ff00 !important;
+}

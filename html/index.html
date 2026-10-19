@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Zone Top Kills</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+
+<body>
+    <div id="container" style="display: none;">
+        <div class="header">
+            <!-- Logo Removed -->
+            <h1 class="wave-text">TOP KILLERS</h1>
+        </div>
+        <div class="leaderboard">
+            <div class="row rank-1">
+                <span class="rank">1.</span>
+                <span class="name" id="name-1">---</span>
+                <span class="kills" id="kills-1">0</span>
+            </div>
+            <div class="row rank-2">
+                <span class="rank">2.</span>
+                <span class="name" id="name-2">---</span>
+                <span class="kills" id="kills-2">0</span>
+            </div>
+            <div class="row rank-3">
+                <span class="rank">3.</span>
+                <span class="name" id="name-3">---</span>
+                <span class="kills" id="kills-3">0</span>
+            </div>
+        </div>
+
+        <!-- My Stats Seperator -->
+        <div class="my-stats-container"
+            style="margin-top: 2px; border-top: 1px solid rgba(0, 255, 255, 0.3); padding-top: 4px;">
+            <div class="row">
+                <span class="rank">★</span>
+                <span class="name">YOUR TOTAL KILLS</span>
+                <span class="kills" id="my-kills">0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Separate Notification Container -->
+    <div id="notify-container" class="notify-box" style="display: none;">
+        <span id="notify-message">Notification Message</span>
+    </div>
+
+
+
+    <!-- Kill Feed Container -->
+    <div id="kill-feed-container"></div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

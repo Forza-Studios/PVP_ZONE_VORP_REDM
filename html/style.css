@@ -1,0 +1,356 @@
+@font-face {
+    font-family: 'RDRCatalogueBold';
+    src: url('./RDRCatalogueBold-Bold.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+html,
+body {
+    background: none !important;
+    background-color: transparent !important;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-family: 'RDRCatalogueBold', serif;
+    user-select: none;
+}
+
+#container {
+    position: absolute;
+    /* Adjusted position: Higher and more Left */
+    top: 40px;
+    left: 25px;
+    width: 250px;
+    z-index: 1000;
+
+    /* Transparent Container */
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Floating Header Block */
+.header {
+    background: linear-gradient(135deg, rgba(8, 20, 25, 0.95), rgba(5, 15, 20, 0.9));
+    border: 1px solid rgba(255, 0, 0, 0.15);
+    border-radius: 4px;
+    padding: 15px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+
+    position: relative;
+    overflow: hidden;
+}
+
+.header::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #ff0000, transparent);
+    opacity: 0.7;
+}
+
+.wave-text {
+    margin: 0;
+    font-size: 1.8rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #ffe0e0;
+    text-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
+}
+
+/* Floating List Container */
+.leaderboard {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Individual Floating Rows */
+.row {
+    background: linear-gradient(90deg, rgba(10, 25, 30, 0.9), rgba(5, 15, 20, 0.85));
+    border: 1px solid rgba(255, 0, 0, 0.08);
+    border-left: 3px solid rgba(255, 0, 0, 0.3);
+    border-radius: 3px;
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: transform 0.2s ease, background 0.2s;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.row:hover {
+    transform: translateX(3px);
+    background: linear-gradient(90deg, rgba(15, 35, 40, 0.95), rgba(10, 20, 25, 0.9));
+    border-left-color: #ff0000;
+}
+
+/* Rank Specific Styling */
+.rank-1 {
+    border-left-color: #ffd700;
+    /* Gold Border */
+    background: linear-gradient(90deg, rgba(255, 215, 0, 0.15), rgba(5, 15, 20, 0.9));
+}
+
+.rank-1 .rank {
+    color: #ffd700;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+    /* Allow more space for crown */
+    width: auto;
+    min-width: 45px;
+}
+
+/* Add Crown AFTER the number */
+.rank-1 .rank::after {
+    content: "👑";
+    margin-left: 5px;
+    font-size: 1.0rem;
+    vertical-align: middle;
+    position: relative;
+    top: -3px;
+    /* Lift it up slightly */
+}
+
+.rank-2 {
+    border-left-color: #aa0000;
+}
+
+.rank-3 {
+    border-left-color: #660000;
+}
+
+.rank {
+    color: #f00;
+    width: 35px;
+    font-size: 1.2rem;
+    /* Increased base width */
+    white-space: nowrap;
+    /* Prevent wrapping */
+}
+
+.name {
+    flex-grow: 1;
+    text-align: left;
+    font-family: 'RDRCatalogueBold', sans-serif;
+    font-size: 1.2rem;
+    color: #ffffff !important;
+    /* Force White */
+    text-transform: uppercase;
+    z-index: 10;
+    position: relative;
+}
+
+.kills {
+    font-size: 1.2rem;
+    color: #ff0000 !important;
+    /* Force Cyan */
+    text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+    min-width: 30px;
+    text-align: right;
+    z-index: 10;
+    position: relative;
+}
+
+.server-logo {
+    display: none;
+}
+
+/* Notification Style */
+.notify-box {
+    /* Position Right Middle */
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    /* Far Right */
+    transform: translateY(-50%);
+    /* Center Vertically */
+
+    width: auto;
+    white-space: nowrap;
+    z-index: 2000;
+
+    background: linear-gradient(90deg, rgba(8, 20, 25, 0.95), rgba(5, 15, 20, 0.9));
+    border: 1px solid rgba(255, 0, 0, 0.2);
+    border-right: 3px solid #ff0000;
+    /* Border on right side */
+    border-left: none;
+
+    border-radius: 4px;
+    padding: 15px 20px;
+    text-align: right;
+    /* Right align text for Arabic */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    color: #ffe0e0;
+    font-family: 'RDRCatalogueBold', sans-serif;
+    font-size: 1.3rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+
+    /* Animation: Slide from Right */
+    animation: slideInRight 0.5s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translate(100%, -50%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(0, -50%);
+    }
+}
+
+/* Kill Feed Styles */
+#kill-feed-container {
+    position: absolute;
+    top: 35%;
+    /* Adjusted: Slightly above middle */
+    right: 20px;
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    z-index: 1500;
+}
+
+.feed-item {
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.6));
+    border-right: 2px solid #ff4444;
+    /* Red for kill? or Cyan? User likes Cyan mostly but let's mix it up or use text colors */
+    border-radius: 3px;
+    padding: 8px 12px;
+    text-align: right;
+    color: white;
+    font-size: 1.1rem;
+    font-family: 'RDRCatalogueBold', sans-serif;
+    text-transform: uppercase;
+
+    /* Animation */
+    animation: slideInFeed 0.4s ease-out;
+}
+
+.killer-name {
+    color: #ff0000;
+}
+
+/* Red */
+.victim-name {
+    color: #ff6666;
+}
+
+/* Reddish */
+.sword-icon {
+    margin: 0 5px;
+    color: #ffd700;
+    font-size: 0.8rem;
+}
+
+@keyframes slideInFeed {
+    from {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Streak 5: Luxurious Gold */
+.streak-5 {
+    border-right-color: #ffd700;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+    background: linear-gradient(90deg, rgba(20, 15, 5, 0.9), rgba(40, 35, 10, 0.9));
+}
+
+.streak-5 .killer-name {
+    color: #ffd700;
+    text-shadow: 0 0 5px #ffd700;
+}
+
+/* Streak 10: Fire / Animated Cyan */
+.streak-10 {
+    border-right-color: #ff0000;
+    background: linear-gradient(90deg, rgba(8, 20, 25, 0.95), rgba(0, 0, 0, 0.8));
+    animation: slideInFeed 0.4s ease-out, pulse-fire 2s infinite ease-in-out;
+}
+
+.streak-10 .killer-name {
+    color: #ff0000;
+    text-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000;
+}
+
+/* Lightning Icon Style */
+.lightning-icon {
+    margin: 0 10px;
+    /* Balanced spacing */
+    font-size: 1.4rem;
+    /* Slightly smaller to fit better */
+    display: inline-block;
+    vertical-align: middle;
+    /* Center with text */
+    position: relative;
+    top: -2px;
+    /* Fine-tune vertical position */
+    color: #ffe0e0;
+    text-shadow: 0 0 10px #ff0000, 0 0 20px #ffffff;
+    animation: lightning-flash 1.5s infinite;
+}
+
+@keyframes lightning-flash {
+
+    0%,
+    100% {
+        filter: brightness(1) drop-shadow(0 0 2px #ff0000);
+        transform: scale(1);
+    }
+
+    5% {
+        filter: brightness(2) drop-shadow(0 0 10px #ffffff);
+        transform: scale(1.2) rotate(5deg);
+    }
+
+    10% {
+        filter: brightness(1);
+        transform: scale(1);
+    }
+
+    15% {
+        filter: brightness(2) drop-shadow(0 0 10px #ff0000);
+        transform: scale(1.1) rotate(-5deg);
+    }
+
+    40% {
+        filter: brightness(1);
+        transform: scale(1);
+    }
+}
+
+@keyframes pulse-fire {
+    0% {
+        box-shadow: 0 0 5px rgba(255, 0, 0, 0.2), inset 0 0 5px rgba(255, 0, 0, 0.1);
+        border-right: 2px solid #ff0000;
+    }
+
+    50% {
+        box-shadow: 0 0 20px rgba(255, 0, 0, 0.6), inset 0 0 20px rgba(255, 0, 0, 0.2);
+        border-right: 4px solid #ffe0e0;
+    }
+
+    100% {
+        box-shadow: 0 0 5px rgba(255, 0, 0, 0.2), inset 0 0 5px rgba(255, 0, 0, 0.1);
+        border-right: 2px solid #ff0000;
+    }
+}
