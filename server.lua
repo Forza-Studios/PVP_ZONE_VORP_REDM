@@ -33,7 +33,9 @@ function LoadZoneCords()
                     x = row.x,
                     y = row.y,
                     z = row.z,
-                    radius = row.radius or 200.0
+                    radius = row.radius or 200.0,
+                    color = row.color or 'red',
+                    smoke = (row.smoke == 1 or row.smoke == true or row.smoke == nil) and 1 or 0
                 })
             end
             print('[zone_top_kills] Loaded ' .. #ZoneCords .. ' zone(s) from database')
@@ -62,9 +64,22 @@ CreateThread(function()
             x FLOAT,
             y FLOAT,
             z FLOAT,
-            radius FLOAT DEFAULT 200.0
+            radius FLOAT DEFAULT 200.0,
+            color VARCHAR(32) DEFAULT 'red',
+            smoke TINYINT(1) DEFAULT 1
         )
     ]], {}, function()
+        -- Ensure new columns exist on legacy tables
+        MySQL.query("SHOW COLUMNS FROM pvp_cords LIKE 'color'", {}, function(cols)
+            if not cols or #cols == 0 then
+                MySQL.query("ALTER TABLE pvp_cords ADD COLUMN color VARCHAR(32) DEFAULT 'red'", {})
+            end
+        end)
+        MySQL.query("SHOW COLUMNS FROM pvp_cords LIKE 'smoke'", {}, function(cols)
+            if not cols or #cols == 0 then
+                MySQL.query("ALTER TABLE pvp_cords ADD COLUMN smoke TINYINT(1) DEFAULT 1", {})
+            end
+        end)
         LoadZoneCords()
     end)
 end)
@@ -94,8 +109,12 @@ RegisterNetEvent('zone_top_kills:addZoneCord', function(data)
         TriggerClientEvent("vorp:TipRight", src, "You do not have permission.", 3000)
         return
     end
-    MySQL.query('INSERT INTO pvp_cords (name, x, y, z, radius) VALUES (?, ?, ?, ?, ?)',
-        {data.name, data.x, data.y, data.z, data.radius or 200.0},
+
+    local color = data.color or 'red'
+    local smoke = (data.smoke == true or data.smoke == 1 or data.smoke == '1') and 1 or 0
+
+    MySQL.query('INSERT INTO pvp_cords (name, x, y, z, radius, color, smoke) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        {data.name, data.x, data.y, data.z, data.radius or 200.0, color, smoke},
         function()
             LoadZoneCords()
             TriggerClientEvent("vorp:TipRight", src, "Zone cord added to database.", 3000)

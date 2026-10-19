@@ -180,6 +180,17 @@ document.addEventListener('DOMContentLoaded', () => {
         postNUI('cordManagerClose');
     }
 
+    const colorLabels = {
+        red: '🔴 Red',
+        gold: '🟡 Gold',
+        cyan: '🔵 Cyan',
+        green: '🟢 Green',
+        purple: '🟣 Purple',
+        orange: '🟠 Orange',
+        blue: '🔷 Blue',
+        white: '⚪ White'
+    };
+
     function renderCordsList(cords = []) {
         currentCords = cords;
         if (!cordsListEl) return;
@@ -203,11 +214,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const y = Number(zone.y || 0).toFixed(2);
             const z = Number(zone.z || 0).toFixed(2);
             const r = Number(zone.radius || 200).toFixed(0);
+            const colorKey = zone.color || 'red';
+            const colorText = colorLabels[colorKey] || '🔴 Red';
+            const hasSmoke = (zone.smoke == 1 || zone.smoke === true);
+            const smokeTag = hasSmoke 
+                ? '<span class="cm-tag cm-tag-smoke">💨 Smoke</span>' 
+                : '<span class="cm-tag cm-tag-nosmoke">No Smoke</span>';
 
             item.innerHTML = `
                 <div class="cm-cord-details">
-                    <span class="cm-cord-name">${name}</span>
-                    <span class="cm-cord-coords">X: ${x} | Y: ${y} | Z: ${z} | Radius: ${r}m</span>
+                    <div class="cm-cord-header">
+                        <span class="cm-cord-name">${name}</span>
+                        <div class="cm-tags-wrap">
+                            <span class="cm-tag cm-tag-color ${colorKey}">${colorText}</span>
+                            <span class="cm-tag cm-tag-radius">⭕ ${r}m</span>
+                            ${smokeTag}
+                        </div>
+                    </div>
+                    <span class="cm-cord-coords">X: ${x} | Y: ${y} | Z: ${z}</span>
                 </div>
                 <button type="button" class="cm-btn-remove" data-id="${zone.id}">Delete</button>
             `;
@@ -250,13 +274,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const yInput = document.getElementById('cordY');
             const zInput = document.getElementById('cordZ');
             const radiusInput = document.getElementById('cordRadius');
+            const colorInput = document.getElementById('cordColor');
+            const smokeInput = document.getElementById('cordSmoke');
 
             const payload = {
                 name: nameInput.value.trim(),
                 x: parseFloat(xInput.value),
                 y: parseFloat(yInput.value),
                 z: parseFloat(zInput.value),
-                radius: parseFloat(radiusInput.value) || 200.0
+                radius: parseFloat(radiusInput.value) || 200.0,
+                color: colorInput ? colorInput.value : 'red',
+                smoke: smokeInput ? smokeInput.checked : true
             };
 
             if (!payload.name) return;
@@ -268,6 +296,8 @@ document.addEventListener('DOMContentLoaded', () => {
             yInput.value = '';
             zInput.value = '';
             radiusInput.value = '200.0';
+            if (colorInput) colorInput.value = 'red';
+            if (smokeInput) smokeInput.checked = true;
         });
     }
 

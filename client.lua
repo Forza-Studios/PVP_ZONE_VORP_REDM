@@ -3,6 +3,21 @@ local inZone = false
 local hasDied = false
 local ZoneData = nil
 local createdBlips = {}
+local spawnedSmokeFx = {}
+local activeSmokeZoneId = nil
+
+-- Blip Color Modifiers (RedM MP Color hashes)
+local ColorModifiers = {
+    ['red']    = joaat("BLIP_MODIFIER_MP_COLOR_2"),
+    ['gold']   = joaat("BLIP_MODIFIER_MP_COLOR_32"),
+    ['yellow'] = joaat("BLIP_MODIFIER_MP_COLOR_8"),
+    ['cyan']   = joaat("BLIP_MODIFIER_MP_COLOR_6"),
+    ['green']  = joaat("BLIP_MODIFIER_MP_COLOR_7"),
+    ['purple'] = joaat("BLIP_MODIFIER_MP_COLOR_4"),
+    ['blue']   = joaat("BLIP_MODIFIER_MP_COLOR_5"),
+    ['orange'] = joaat("BLIP_MODIFIER_MP_COLOR_9"),
+    ['white']  = joaat("BLIP_MODIFIER_MP_COLOR_1")
+}
 
 -- Request initial zone coordinates from server
 TriggerServerEvent('zone_top_kills:requestZoneData')
@@ -15,6 +30,58 @@ local function RemoveAllBlips()
         end
     end
     createdBlips = {}
+end
+
+-- Helper: Clear active smoke particle effects
+local function ClearAllZoneSmoke()
+    for _, handle in ipairs(spawnedSmokeFx) do
+        if DoesParticleFxLoopedExist(handle) then
+            StopParticleFxLooped(handle, false)
+        end
+    end
+    spawnedSmokeFx = {}
+    activeSmokeZoneId = nil
+end
+
+-- Helper: Spawn Zone Smoke Effect (Center beacon + 4 perimeter pillars)
+local function SpawnZoneSmoke(zone)
+    local ptfxDict = "core"
+    RequestNamedPtfxAsset(ptfxDict)
+    local tries = 0
+    while not HasNamedPtfxAssetLoaded(ptfxDict) and tries < 50 do
+        Citizen.Wait(10)
+        tries = tries + 1
+    end
+    if not HasNamedPtfxAssetLoaded(ptfxDict) then return end
+
+    local zX = zone.x
+    local zY = zone.y
+    local zZ = zone.z
+    local radius = zone.radius or 200.0
+
+    -- 1. Center Tall Rising Smoke Column
+    UseParticleFxAssetNextCall(ptfxDict)
+    local centerFx = StartParticleFxLoopedAtCoord("ent_amb_smoke_plume", zX, zY, zZ, 0.0, 0.0, 0.0, 2.2, false, false, false, false)
+    if centerFx and centerFx > 0 then
+        table.insert(spawnedSmokeFx, centerFx)
+    end
+
+    -- 2. Perimeter Smoke Pillars (4 Compass Points along radius)
+    local perimeterAngles = { 0, 90, 180, 270 }
+    for _, deg in ipairs(perimeterAngles) do
+        local rad = math.rad(deg)
+        local pX = zX + (radius * math.cos(rad))
+        local pY = zY + (radius * math.sin(rad))
+        local groundZ = zZ
+        local found, gZ = GetGroundZFor_3dCoord(pX, pY, zZ + 60.0, false)
+        if found then groundZ = gZ end
+
+        UseParticleFxAssetNextCall(ptfxDict)
+        local pFx = StartParticleFxLoopedAtCoord("ent_amb_smoke_plume", pX, pY, groundZ, 0.0, 0.0, 0.0, 1.5, false, false, false, false)
+        if pFx and pFx > 0 then
+            table.insert(spawnedSmokeFx, pFx)
+        end
+    end
 end
 
 -- Helper: Refresh Map Blips
@@ -32,21 +99,21 @@ local function RefreshZoneBlips()
         local zZ = zone.z
         local radius = zone.radius or 200.0
         local name = zone.name or "PvP Zone"
+        local colorKey = zone.color or 'red'
+        local colorMod = ColorModifiers[colorKey] or ColorModifiers['red']
 
-        -- 1. Radius Blip (Red Area on Map)
-        -- Native 0x45f13b7e0a15c880 is AddBlipForRadius in RedM
+        -- 1. Radius Blip (Colored Area on Map)
         local radiusBlip = Citizen.InvokeNative(0x45f13b7e0a15c880, -1282792512, zX, zY, zZ, radius)
         if radiusBlip then
-            Citizen.InvokeNative(0x662D364ABF16DE2F, radiusBlip, joaat("BLIP_MODIFIER_MP_COLOR_2")) -- Red Color
+            Citizen.InvokeNative(0x662D364ABF16DE2F, radiusBlip, colorMod)
             table.insert(createdBlips, radiusBlip)
         end
 
-        -- 2. Icon Blip with Name
-        -- Native 0x554D9D53F696D002 is AddBlipForCoords in RedM
+        -- 2. Icon Blip with Custom Name & Color
         local iconBlip = Citizen.InvokeNative(0x554D9D53F696D002, 1664425300, zX, zY, zZ)
         if iconBlip then
             SetBlipSprite(iconBlip, joaat("blip_ambient_bounty"), true) -- Skull/bounty icon
-            Citizen.InvokeNative(0x662D364ABF16DE2F, iconBlip, joaat("BLIP_MODIFIER_MP_COLOR_2"))
+            Citizen.InvokeNative(0x662D364ABF16DE2F, iconBlip, colorMod)
             Citizen.InvokeNative(0x9CB1A1623062F402, iconBlip, name)
             table.insert(createdBlips, iconBlip)
         end
@@ -56,6 +123,7 @@ end
 -- Receive zone coordinates from server
 RegisterNetEvent('zone_top_kills:receiveZoneData', function(cords)
     ZoneData = cords
+    ClearAllZoneSmoke()
     RefreshZoneBlips()
 end)
 
@@ -88,7 +156,7 @@ local function CheckPlayerInAnyZone(coords)
     return false, minDistance, closestZone
 end
 
--- Zone Detection Thread
+-- Zone Detection Thread & Smoke Manager
 Citizen.CreateThread(function()
     Citizen.Wait(1500) -- Wait for NUI initialization
 
@@ -102,17 +170,54 @@ Citizen.CreateThread(function()
 
         local isInside, dist, activeZone = CheckPlayerInAnyZone(coords)
 
+        -- Handle Smoke Effect for nearby zones
+        if activeZone and (activeZone.smoke == 1 or activeZone.smoke == true) then
+            local zoneIdentifier = activeZone.id or (activeZone.name .. "_" .. activeZone.x)
+            local smokeDist = (activeZone.radius or 200.0) + 300.0
+
+            if dist < smokeDist then
+                if activeSmokeZoneId ~= zoneIdentifier then
+                    ClearAllZoneSmoke()
+                    SpawnZoneSmoke(activeZone)
+                    activeSmokeZoneId = zoneIdentifier
+                end
+            else
+                if activeSmokeZoneId == zoneIdentifier then
+                    ClearAllZoneSmoke()
+                end
+            end
+        else
+            if activeSmokeZoneId ~= nil then
+                ClearAllZoneSmoke()
+            end
+        end
+
         if isInside then
             sleep = 500
             if not inZone then
                 inZone = true
                 showingUI = true
+
+                -- Dramatic Smoke Burst on Zone Entrance
+                Citizen.CreateThread(function()
+                    RequestNamedPtfxAsset("core")
+                    local tries = 0
+                    while not HasNamedPtfxAssetLoaded("core") and tries < 40 do
+                        Citizen.Wait(10)
+                        tries = tries + 1
+                    end
+                    if HasNamedPtfxAssetLoaded("core") then
+                        UseParticleFxAssetNextCall("core")
+                        StartParticleFxNonLoopedAtCoord("ent_amb_smoke_ground", coords.x, coords.y, coords.z - 0.4, 0.0, 0.0, 0.0, 2.5, false, false, false)
+                    end
+                end)
+
                 SendNUIMessage({ action = "show" })
                 TriggerServerEvent('zone_top_kills:requestData')
                 SendNUIMessage({ action = "notify", message = Config.Lang.enteredZone })
             end
         else
-            -- CRITICAL FIX: If player exits zone, dies and respawns far away, or teleports, ALWAYS hide UI
+            -- If player leaves zone, dies/respawns far away, or teleports, hide UI
             if inZone then
                 inZone = false
                 showingUI = false
@@ -121,7 +226,7 @@ Citizen.CreateThread(function()
             end
 
             if dist and dist < 250.0 then
-                sleep = 1000 -- Near zone boundary
+                sleep = 1000 -- Near boundary
             else
                 sleep = 2000 -- Far from any zone
             end
@@ -272,7 +377,9 @@ RegisterNuiCallback('cordManagerAdd', function(data, cb)
         x = tonumber(data.x) or 0.0,
         y = tonumber(data.y) or 0.0,
         z = tonumber(data.z) or 0.0,
-        radius = tonumber(data.radius) or 200.0
+        radius = tonumber(data.radius) or 200.0,
+        color = data.color or 'red',
+        smoke = data.smoke
     })
     cb('ok')
 end)
@@ -289,10 +396,11 @@ RegisterNuiCallback('cordManagerGetCords', function(data, cb)
     cb('ok')
 end)
 
--- Release focus if resource stops
+-- Cleanup on resource stop
 AddEventHandler('onResourceStop', function(resourceName)
     if GetCurrentResourceName() == resourceName then
         SetNuiFocus(false, false)
         RemoveAllBlips()
+        ClearAllZoneSmoke()
     end
 end)
