@@ -30,10 +30,6 @@ RegisterNetEvent('zone_top_kills:requestData', function()
             local myKills = 0
             local myName = Character.firstname .. ' ' .. Character.lastname
             
-            -- Assuming KillData is a global table that stores kill data,
-            -- but it's not defined in the provided context.
-            -- For now, we'll fetch from DB for personal stats.
-            -- If KillData is meant to be a cached server-side table, it needs to be populated.
             MySQL.scalar(string.format('SELECT kills FROM %s WHERE identifier = ?', TableName), {charId}, function(killsResult)
                 myKills = killsResult or 0
                 TriggerClientEvent('zone_top_kills:updateSelf', src, { name = myName, kills = myKills })
