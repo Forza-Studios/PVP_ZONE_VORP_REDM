@@ -14,6 +14,9 @@ Config.MinBlipRadius = 40.0
 Config.AutoReviveInZone = true
 Config.AutoReviveDelay = 1000 -- ms to wait after death before reviving
 
+-- Unlimited ammo for everyone while inside a PvP zone
+Config.InfiniteAmmoInZone = true
+
 -- COMMANDS
 Config.Command = 'resetzonekills' -- Command to reset leaderboard
 

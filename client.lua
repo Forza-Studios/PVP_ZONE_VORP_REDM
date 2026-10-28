@@ -456,3 +456,39 @@ AddEventHandler('onResourceStop', function(resourceName)
         ClearAllZoneSmoke()
     end
 end)
+
+-- Unlimited ammo while inside a PvP zone (removed again on leaving)
+Citizen.CreateThread(function()
+    local ammoActive = false
+    local lastWeapon = nil
+
+    local function SetInfiniteAmmo(ped, toggle)
+        pcall(function()
+            if SetPedInfiniteAmmoClip then SetPedInfiniteAmmoClip(ped, toggle) end
+            if SetPedInfiniteAmmo then
+                if lastWeapon then SetPedInfiniteAmmo(ped, toggle, lastWeapon) end
+                if toggle then
+                    local ok, weapon = GetCurrentPedWeapon(ped, true, 0, false)
+                    if ok and weapon and weapon ~= 0 then
+                        SetPedInfiniteAmmo(ped, true, weapon)
+                        lastWeapon = weapon
+                    end
+                else
+                    lastWeapon = nil
+                end
+            end
+        end)
+    end
+
+    while true do
+        Citizen.Wait(250)
+        local ped = PlayerPedId()
+        if Config.InfiniteAmmoInZone and inZone and not IsEntityDead(ped) then
+            ammoActive = true
+            SetInfiniteAmmo(ped, true)
+        elseif ammoActive then
+            ammoActive = false
+            SetInfiniteAmmo(ped, false)
+        end
+    end
+end)
