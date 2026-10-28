@@ -118,17 +118,21 @@ local function RefreshZoneBlips()
         local colorMod = ColorModifiers[colorKey] or ColorModifiers['red']
 
         -- 1. Radius Blip (Colored Area Circle on Map & Minimap)
-        local radiusBlip = Citizen.InvokeNative(0x45f13b7e0a15c880, -1282792512, zX, zY, zZ, radius)
+        local radiusBlip = Citizen.InvokeNative(0x45f13b7e0a15c880, -1282792512, zX, zY, zZ, math.max(radius + 0.0, Config.MinBlipRadius or 40.0))
         if radiusBlip and radiusBlip ~= 0 then
             Citizen.InvokeNative(0x662D364ABF16DE2F, radiusBlip, colorMod)
             Citizen.InvokeNative(0x45FF974EEE1C8734, radiusBlip, 140) -- SetBlipAlpha: makes the circle visible on minimap
             table.insert(createdBlips, radiusBlip)
         end
+        print(("[coi-pvpzone] zone '%s' radius blip=%s smoke=%s r=%s"):format(name, tostring(radiusBlip), tostring(zone.smoke), tostring(radius)))
 
         -- 2. Icon Blip with Custom Name & Color (Visible on Minimap)
         local iconBlip = Citizen.InvokeNative(0x554D9D53F696D002, 1664425300, zX, zY, zZ)
         if iconBlip and iconBlip ~= 0 then
-            SetBlipSprite(iconBlip, joaat("blip_ambient_bounty"), true) -- Skull/bounty icon
+            -- Sprite is overridable per zone (zone.sprite) or globally (Config.BlipSprite) to test minimap visibility
+            local sprite = zone.sprite or (Config and Config.BlipSprite) or "blip_ambient_bounty"
+            SetBlipSprite(iconBlip, joaat(sprite), true)
+            print(("[coi-pvpzone] icon blip %s sprite=%s exists=%s"):format(iconBlip, sprite, tostring(DoesBlipExist(iconBlip))))
             SetBlipScale(iconBlip, 1.0)
             -- RedM (RDR3) does not expose SetBlipAsShortRange (GTA V native, nil here).
             -- Icon blips added via ADD_BLIP_FOR_COORD display on the minimap by default.
@@ -198,6 +202,7 @@ Citizen.CreateThread(function()
             if dist < smokeDist then
                 if activeSmokeZoneId ~= zoneIdentifier then
                     ClearAllZoneSmoke()
+                    print(("[coi-pvpzone] spawning smoke for %s (dist %.0f)"):format(tostring(zoneIdentifier), dist))
                     SpawnZoneSmoke(activeZone)
                     activeSmokeZoneId = zoneIdentifier
                 end
