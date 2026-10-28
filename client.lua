@@ -5,6 +5,7 @@ local ZoneData = nil
 local createdBlips = {}
 local spawnedSmokeFx = {}
 local activeSmokeZoneId = nil
+local DisableInfiniteAmmo -- defined near the bottom, used by onResourceStop
 
 -- Blip Color Modifiers (RedM MP Color hashes)
 local ColorModifiers = {
@@ -452,43 +453,45 @@ end)
 AddEventHandler('onResourceStop', function(resourceName)
     if GetCurrentResourceName() == resourceName then
         SetNuiFocus(false, false)
+        DisableInfiniteAmmo()
         RemoveAllBlips()
         ClearAllZoneSmoke()
     end
 end)
 
 -- Unlimited ammo while inside a PvP zone (removed again on leaving)
-Citizen.CreateThread(function()
-    local ammoActive = false
-    local lastWeapon = nil
+local infiniteWeapons = {} -- every weapon hash we enabled infinite ammo on
 
-    local function SetInfiniteAmmo(ped, toggle)
-        pcall(function()
-            if SetPedInfiniteAmmoClip then SetPedInfiniteAmmoClip(ped, toggle) end
-            if SetPedInfiniteAmmo then
-                if lastWeapon then SetPedInfiniteAmmo(ped, toggle, lastWeapon) end
-                if toggle then
-                    local ok, weapon = GetCurrentPedWeapon(ped, true, 0, false)
-                    if ok and weapon and weapon ~= 0 then
-                        SetPedInfiniteAmmo(ped, true, weapon)
-                        lastWeapon = weapon
-                    end
-                else
-                    lastWeapon = nil
-                end
+DisableInfiniteAmmo = function()
+    local ped = PlayerPedId()
+    pcall(function()
+        if SetPedInfiniteAmmoClip then SetPedInfiniteAmmoClip(ped, false) end
+        if SetPedInfiniteAmmo then
+            for weapon in pairs(infiniteWeapons) do
+                SetPedInfiniteAmmo(ped, false, weapon)
             end
-        end)
-    end
+        end
+    end)
+    infiniteWeapons = {}
+end
 
+Citizen.CreateThread(function()
     while true do
         Citizen.Wait(250)
         local ped = PlayerPedId()
         if Config.InfiniteAmmoInZone and inZone and not IsEntityDead(ped) then
-            ammoActive = true
-            SetInfiniteAmmo(ped, true)
-        elseif ammoActive then
-            ammoActive = false
-            SetInfiniteAmmo(ped, false)
+            pcall(function()
+                if SetPedInfiniteAmmoClip then SetPedInfiniteAmmoClip(ped, true) end
+                if SetPedInfiniteAmmo then
+                    local ok, weapon = GetCurrentPedWeapon(ped, true, 0, false)
+                    if ok and weapon and weapon ~= 0 and not infiniteWeapons[weapon] then
+                        SetPedInfiniteAmmo(ped, true, weapon)
+                        infiniteWeapons[weapon] = true
+                    end
+                end
+            end)
+        elseif next(infiniteWeapons) ~= nil then
+            DisableInfiniteAmmo()
         end
     end
 end)
