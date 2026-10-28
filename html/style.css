@@ -418,9 +418,10 @@ body {
 }
 
 .cm-modal {
+    zoom: 1.3; /* scales the whole manager, text included */
     width: 540px;
-    max-width: 92vw;
-    max-height: 88vh;
+    max-width: 70vw;
+    max-height: 66vh;
     background: linear-gradient(135deg, rgba(16, 20, 26, 0.98), rgba(10, 12, 16, 0.98));
     border: 1px solid rgba(220, 38, 38, 0.35);
     border-radius: 8px;
@@ -872,3 +873,31 @@ kbd {
 .cm-cords-list::-webkit-scrollbar-thumb:hover {
     background: var(--red-primary);
 }
+.cm-item-actions { display: flex; gap: 6px; }
+.cm-btn-edit {
+    background: rgba(56, 189, 248, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    color: #7dd3fc;
+    font-family: inherit;
+    font-size: 0.8rem;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.15s ease;
+}
+.cm-btn-edit:hover { background: #0284c7; color: #fff; border-color: #0284c7; }
+.cm-btn-cancel {
+    width: 100%;
+    margin-top: 8px;
+    background: transparent;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    color: #cbd5e1;
+    font-family: inherit;
+    font-size: 0.9rem;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.cm-btn-cancel:hover { background: rgba(148, 163, 184, 0.15); }

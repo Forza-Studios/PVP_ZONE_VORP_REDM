@@ -169,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
         postNUI('cordManagerGetCords');
     }
 
-    function closeCordManager() {
+    function closeCordManager(notifyClient = true) {
         if (!cmOverlay) return;
         cmOverlay.classList.remove('open');
         setTimeout(() => {
@@ -177,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 cmOverlay.style.display = 'none';
             }
         }, 250);
-        postNUI('cordManagerClose');
+        if (notifyClient) postNUI('cordManagerClose');
     }
 
     const colorLabels = {
@@ -233,8 +233,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <span class="cm-cord-coords">X: ${x} | Y: ${y} | Z: ${z}</span>
                 </div>
-                <button type="button" class="cm-btn-remove" data-id="${zone.id}">Delete</button>
+                <div class="cm-item-actions">
+                    <button type="button" class="cm-btn-edit">Edit</button>
+                    <button type="button" class="cm-btn-remove" data-id="${zone.id}">Delete</button>
+                </div>
             `;
+
+            item.querySelector('.cm-btn-edit').addEventListener('click', () => startEdit(zone));
 
             const removeBtn = item.querySelector('.cm-btn-remove');
             removeBtn.addEventListener('click', () => {
@@ -244,6 +249,40 @@ document.addEventListener('DOMContentLoaded', () => {
             cordsListEl.appendChild(item);
         });
     }
+
+    // Edit mode
+    const cordIdInput = document.getElementById('cordId');
+    const cordSubmitBtn = document.getElementById('cordSubmit');
+    const cordCancelBtn = document.getElementById('cordCancelEdit');
+    const formTitleEl = document.getElementById('formTitle');
+
+    function resetForm() {
+        addCordForm.reset();
+        cordIdInput.value = '';
+        document.getElementById('cordRadius').value = '200.0';
+        document.getElementById('cordColor').value = 'red';
+        document.getElementById('cordSmoke').checked = true;
+        cordSubmitBtn.textContent = 'Add Zone to Database';
+        formTitleEl.textContent = 'Add New Zone';
+        cordCancelBtn.style.display = 'none';
+    }
+
+    function startEdit(zone) {
+        cordIdInput.value = zone.id;
+        document.getElementById('cordName').value = zone.name || '';
+        document.getElementById('cordX').value = zone.x;
+        document.getElementById('cordY').value = zone.y;
+        document.getElementById('cordZ').value = zone.z;
+        document.getElementById('cordRadius').value = zone.radius || 200.0;
+        document.getElementById('cordColor').value = zone.color || 'red';
+        document.getElementById('cordSmoke').checked = (zone.smoke == 1 || zone.smoke === true);
+        cordSubmitBtn.textContent = 'Save Changes';
+        formTitleEl.textContent = 'Edit Zone';
+        cordCancelBtn.style.display = 'block';
+        addCordForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    if (cordCancelBtn) cordCancelBtn.addEventListener('click', resetForm);
 
     // Fill current coords
     if (btnFillCoords) {
@@ -289,21 +328,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!payload.name) return;
 
-            postNUI('cordManagerAdd', payload);
+            if (cordIdInput.value) {
+                payload.id = Number(cordIdInput.value);
+                postNUI('cordManagerUpdate', payload);
+            } else {
+                postNUI('cordManagerAdd', payload);
+            }
 
-            nameInput.value = '';
-            xInput.value = '';
-            yInput.value = '';
-            zInput.value = '';
-            radiusInput.value = '200.0';
-            if (colorInput) colorInput.value = 'red';
-            if (smokeInput) smokeInput.checked = true;
+            resetForm();
         });
     }
 
     // Close button
     if (closeCmBtn) {
-        closeCmBtn.addEventListener('click', closeCordManager);
+        closeCmBtn.addEventListener('click', () => closeCordManager());
     }
 
     // ESC Key to Close
@@ -345,7 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 openCordManager();
                 break;
             case 'closeCordManager':
-                closeCordManager();
+                closeCordManager(false);
                 break;
             case 'updateCords':
                 renderCordsList(item.cords || []);

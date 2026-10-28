@@ -125,6 +125,27 @@ RegisterNetEvent('zone_top_kills:addZoneCord', function(data)
         end)
 end)
 
+-- Update an existing zone cord
+RegisterNetEvent('zone_top_kills:updateZoneCord', function(data)
+    local src = source
+    if not IsAdmin(src) then
+        TriggerClientEvent("vorp:TipRight", src, "You do not have permission.", 3000)
+        return
+    end
+
+    local smoke = (data.smoke == true or data.smoke == 1 or data.smoke == '1') and 1 or 0
+
+    MySQL.query('UPDATE pvp_cords SET name = ?, x = ?, y = ?, z = ?, radius = ?, color = ?, smoke = ? WHERE id = ?',
+        {data.name, data.x, data.y, data.z, data.radius or 200.0, data.color or 'red', smoke, data.id},
+        function()
+            LoadZoneCords()
+            TriggerClientEvent("vorp:TipRight", src, "Zone updated.", 3000)
+            MySQL.query('SELECT * FROM pvp_cords', {}, function(result)
+                TriggerClientEvent('zone_top_kills:receiveZoneCords', src, result or {})
+            end)
+        end)
+end)
+
 -- Remove a zone cord from database
 RegisterNetEvent('zone_top_kills:removeZoneCord', function(data)
     local src = source

@@ -85,7 +85,7 @@
                 <!-- Add New Zone Form -->
                 <div class="cm-section">
                     <div class="cm-section-title">
-                        <h2>Add New Zone</h2>
+                        <h2 id="formTitle">Add New Zone</h2>
                         <button type="button" id="btnFillCoords" class="cm-btn-auto">📍 Use Current Coords</button>
                     </div>
                     <form id="addCordForm">
@@ -134,7 +134,9 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="cm-btn-submit">Add Zone to Database</button>
+                        <input type="hidden" id="cordId" value="">
+                        <button type="submit" id="cordSubmit" class="cm-btn-submit">Add Zone to Database</button>
+                        <button type="button" id="cordCancelEdit" class="cm-btn-cancel" style="display:none;">Cancel Edit</button>
                     </form>
                 </div>
 

@@ -413,6 +413,21 @@ RegisterNuiCallback('cordManagerAdd', function(data, cb)
     cb('ok')
 end)
 
+-- NUI Callback: Update an existing zone cord
+RegisterNuiCallback('cordManagerUpdate', function(data, cb)
+    TriggerServerEvent('zone_top_kills:updateZoneCord', {
+        id = data.id,
+        name = data.name,
+        x = tonumber(data.x) or 0.0,
+        y = tonumber(data.y) or 0.0,
+        z = tonumber(data.z) or 0.0,
+        radius = tonumber(data.radius) or 200.0,
+        color = data.color or 'red',
+        smoke = data.smoke
+    })
+    cb('ok')
+end)
+
 -- NUI Callback: Remove a zone cord
 RegisterNuiCallback('cordManagerRemove', function(data, cb)
     TriggerServerEvent('zone_top_kills:removeZoneCord', { id = data.id })
