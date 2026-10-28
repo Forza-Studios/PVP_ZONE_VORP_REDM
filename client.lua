@@ -314,6 +314,14 @@ Citizen.CreateThread(function()
                     else
                         TriggerServerEvent('zone_top_kills:onDeath')
                     end
+
+                    -- Instant auto revive at the same spot (VORP revive keeps the death position)
+                    if Config.AutoReviveInZone then
+                        Citizen.Wait(Config.AutoReviveDelay or 1000)
+                        if IsEntityDead(PlayerPedId()) then
+                            TriggerEvent('vorp_core:Client:OnPlayerRevive', true)
+                        end
+                    end
                 end
             end
         else

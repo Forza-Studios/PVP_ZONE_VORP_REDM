@@ -10,6 +10,10 @@ Config.BlipSprite = "blip_ambient_bounty"
 -- Minimum radius (meters) of the map circle so small zones stay visible on the minimap
 Config.MinBlipRadius = 40.0
 
+-- Auto revive at the same spot when a player dies inside a PvP zone
+Config.AutoReviveInZone = true
+Config.AutoReviveDelay = 1000 -- ms to wait after death before reviving
+
 -- COMMANDS
 Config.Command = 'resetzonekills' -- Command to reset leaderboard
 
